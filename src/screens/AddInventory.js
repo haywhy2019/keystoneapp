@@ -1,19 +1,26 @@
-import { View, Text, StyleSheet, Modal, Image, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  Image,
+  ScrollView,
+  Button,
+} from "react-native";
 import React, { useState } from "react";
 import Input from "../component/input";
 import { Ionicons } from "@expo/vector-icons";
 import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "react-native-vector-icons/AntDesign";
 import * as ImagePicker from "expo-image-picker";
-import uuid from 'react-native-uuid';
-import {products} from "../data/data"
+import uuid from "react-native-uuid";
+import { products } from "../data/data";
 
 const data = [
   { label: "Jewery", value: "Jewery" },
   { label: "Clothes", value: "Cloths" },
   { label: "Cars", value: "Cars" },
 ];
-
 
 const AddInventory = ({ showModal, display, navigation }) => {
   const [value, setValue] = useState(null);
@@ -22,24 +29,39 @@ const AddInventory = ({ showModal, display, navigation }) => {
   const [name, setName] = useState("");
   const [price, setPrice] = useState(0);
   const [desc, setDesc] = useState("");
+  const [err, setErr] = useState("");
 
-  const newId = uuid.v4()
+  const navigate = () => {
+    navigation.navigate("Inventory");
+    display();
+  };
+
+  const prices = products.map((x) => x.purchasePrice);
+  const totalPrice = prices.reduce((prev, current) => prev + current);
   const submitHandler = () => {
-
-    const uri = JSON.stringify(image)
-    
-    const payload = {
-      id : newId,
-      name,
-      "purchasePrice": price,
-      "type": value,
-      "description": desc,
-      "photo": uri
-
+    if (value == "" || name == "" || price == "" || desc == "" || image == "") {
+      setErr("All fields must be filled");
+      return;
     }
-    products.push(payload)
-    console.log(products, "dta")
-    navigation.navigate('Inventory')
+    if (totalPrice >= 40000) {
+      console.log("price should be less than 5000", totalPrice, prices);
+      setErr("price should be less than 5000");
+      return;
+    }
+
+    setErr("");
+    const newId = uuid.v4();
+    const payload = {
+      id: newId,
+      name,
+      purchasePrice: parseInt(price),
+      type: value,
+      description: desc,
+      photo: image,
+    };
+    products.push(payload);
+    setImage("");
+    navigate();
   };
 
   const renderLabel = () => {
@@ -70,8 +92,7 @@ const AddInventory = ({ showModal, display, navigation }) => {
   };
 
   return (
-
-<View>
+    <View>
       <View style={styles.mainContainer}>
         <Modal
           animationType={"slide"}
@@ -81,84 +102,84 @@ const AddInventory = ({ showModal, display, navigation }) => {
           propagateSwipe={true}
         >
           <ScrollView>
-          <View style={styles.container1}>
-            <Text onPress={display}>Cancel</Text>
+            <View style={styles.container1}>
+              <Text onPress={display}>Cancel</Text>
 
-            <Text style={styles.addButton} onPress={submitHandler}>
-              Add
-            </Text>
-          </View>
-          {image ? (
-            <View style={styles.center}>
-              <Image
-                source={{ uri: image }}
-                style={{ width: 200, height: 200, borderRadius: 100 }}
-              />
+              <Text style={styles.addButton} onPress={submitHandler}>
+                Add
+              </Text>
             </View>
-          ) : (
-            <View style={styles.center}>
-              <Ionicons
-                name="camera"
-                size={60}
-                color="blue"
-                onPress={pickImage}
-              />
-              <Text style={styles.cameraText}>Add Photo</Text>
-            </View>
-          )}
+            {image ? (
+              <View style={styles.center}>
+                <Image
+                  source={{ uri: image }}
+                  style={{ width: 200, height: 200, borderRadius: 100 }}
+                />
+              </View>
+            ) : (
+              <View style={styles.center}>
+                <Ionicons
+                  name="camera"
+                  size={60}
+                  color="blue"
+                  onPress={pickImage}
+                />
+                <Text style={styles.cameraText}>Add Photo</Text>
+              </View>
+            )}
 
-          <Input
-            label="Name"
-            placeholder="Bracelet"
-            style={styles.dropdown}
-            onChangeText={(text) => setName(text)}
-          />
-
-          <View style={styles.container}>
-            {renderLabel()}
-            <Dropdown
-              style={[styles.dropdown, isFocus && { borderColor: "blue" }]}
-              placeholderStyle={styles.placeholderStyle}
-              selectedTextStyle={styles.selectedTextStyle}
-              inputSearchStyle={styles.inputSearchStyle}
-              iconStyle={styles.iconStyle}
-              data={data}
-              // search
-              maxHeight={200}
-              labelField="label"
-              valueField="value"
-              placeholder={!isFocus ? "Select item" : "..."}
-              searchPlaceholder="Search..."
-              value={value}
-              onFocus={() => setIsFocus(true)}
-              onBlur={() => setIsFocus(false)}
-              onChange={(item) => {
-                setValue(item.value);
-                setIsFocus(false);
-              }}
+            <Input
+              label="Name"
+              placeholder="Bracelet"
+              style={styles.dropdown}
+              onChangeText={(text) => setName(text)}
             />
-          </View>
-          <Input
-            label="Value"
-            placeholder="500"
-            style={styles.dropdown}
-            onChangeText={(text) => setPrice(text)}
-            keyboardType="numeric"
-          />
-          <Input
-            label="Description"
-            placeholder="Optional"
-            multiline={true}
-            numberOfLines={10}
-            style="text"
-            style={styles.multiline}
-            onChangeText={(text) => setDesc(text)}
-          />
+
+            <View style={styles.container}>
+              {renderLabel()}
+              <Dropdown
+                style={[styles.dropdown, isFocus && { borderColor: "blue" }]}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                inputSearchStyle={styles.inputSearchStyle}
+                iconStyle={styles.iconStyle}
+                data={data}
+                // search
+                maxHeight={200}
+                labelField="label"
+                valueField="value"
+                placeholder={!isFocus ? "Select item" : "..."}
+                searchPlaceholder="Search..."
+                value={value}
+                onFocus={() => setIsFocus(true)}
+                onBlur={() => setIsFocus(false)}
+                onChange={(item) => {
+                  setValue(item.value);
+                  setIsFocus(false);
+                }}
+              />
+            </View>
+            <Input
+              label="Value"
+              placeholder="500"
+              style={styles.dropdown}
+              onChangeText={(text) => setPrice(text)}
+              keyboardType="numeric"
+            />
+            <Input
+              label="Description"
+              placeholder="Optional"
+              multiline={true}
+              numberOfLines={10}
+              style="text"
+              style={styles.multiline}
+              onChangeText={(text) => setDesc(text)}
+            />
+            <Text style={styles.container1}> {err}</Text>
           </ScrollView>
         </Modal>
       </View>
     </View>
-  
   );
 };
 
